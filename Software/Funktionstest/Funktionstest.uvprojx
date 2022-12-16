@@ -414,6 +414,46 @@
           <GroupName>Servo Module</GroupName>
         </Group>
         <Group>
+          <GroupName>ST7735</GroupName>
+          <Files>
+            <File>
+              <FileName>DefaultFonts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\DefaultFonts.c</FilePath>
+            </File>
+            <File>
+              <FileName>DefaultFonts.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\DefaultFonts.h</FilePath>
+            </File>
+            <File>
+              <FileName>hw_config.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\hw_config.c</FilePath>
+            </File>
+            <File>
+              <FileName>hw_config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\hw_config.h</FilePath>
+            </File>
+            <File>
+              <FileName>ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.c</FilePath>
+            </File>
+            <File>
+              <FileName>ST7735.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.h</FilePath>
+            </File>
+            <File>
+              <FileName>tux_50_ad.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\tux_50_ad.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>::CMSIS</GroupName>
         </Group>
         <Group>

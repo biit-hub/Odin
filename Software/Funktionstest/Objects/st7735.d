@@ -1,9 +1,10 @@
-./objects/st7735.o: ST7735-master\src\ST7735.c \
+./objects/st7735.o: \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.c \
   RTE\_Target_1\Pre_Include_Global.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\math.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdlib.h \
-  ST7735-master\src\..\..\RTE\Device\STM32F303RETx\STCubeGenerated\Inc\main.h \
+  RTE\_Target_1\..\..\RTE\Device\STM32F303RETx\STCubeGenerated\Inc\main.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal.h \
   RTE\Device\STM32F303RETx\STCubeGenerated\Inc\stm32f3xx_hal_conf.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_rcc.h \
@@ -42,5 +43,6 @@
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_tim_ex.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_uart.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_uart_ex.h \
-  ST7735-master\src\ST7735.h ST7735-master\src\DefaultFonts.h \
-  ST7735-master\src\hw_config.h
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.h \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\DefaultFonts.h \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\hw_config.h

@@ -22,6 +22,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdbool.h"
+#include <stdio.h>
+#include "ST7735/ST7735.h"
+#include "ST7735/DefaultFonts.h"
+#include "ST7735/tux_50_ad.h"
 
 /* USER CODE END Includes */
 
@@ -103,6 +107,10 @@ uint8_t potentiometer_test(void);
 void rgb_test(uint8_t);
 void usb_transmit(uint8_t);
 bool eeprom_test(uint16_t, uint8_t);
+void display_init(void);
+void display_test(void);
+void test_graphics(void);
+void test_ascii_screen(void);
 
 /* USER CODE END PFP */
 
@@ -153,8 +161,10 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-	unsigned char state = USB_TEST;//LED_SWITCH_TEST;
+	unsigned char state = LED_SWITCH_TEST;
 	bool result;
+	
+	display_init();
 
   /* USER CODE END 2 */
 
@@ -238,7 +248,17 @@ int main(void)
 				break;
 			
 			case DISPLAY_TEST:
-				state = MATRIX_TEST;				
+				display_test();
+				//test_graphics();
+				//test_ascii_screen();
+				
+				if(BUTTONS & ENTER_BUTTON)
+				{
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					lcd7735_fillScreen(ST7735_BLACK);
+					state = MATRIX_TEST;
+				}				
 				break;
 			
 			case MATRIX_TEST:
@@ -1092,6 +1112,149 @@ bool eeprom_test(uint16_t eepromAddress, uint8_t inputParameter)
 	else
 	{
 		return false;
+	}
+}
+
+void display_init(void)
+{
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	TIM3->CCR1 = 30000;//65535;
+	HAL_Delay(50);
+	TIM3->CCR1 = 65535;
+	lcd7735_initR(INITR_REDTAB);
+	lcd7735_setFont((uint8_t *)&SmallFont[0]);
+	lcd7735_fillScreen(ST7735_BLACK);
+}
+
+void display_test(void)
+{
+	const uint32_t delayTime = 1000;
+	static uint8_t state = 0;
+	static uint32_t time;
+	
+	switch(state)
+	{
+		case 0:
+			lcd7735_fillScreen(ST7735_RED);
+			time = HAL_GetTick();
+			state++;
+			break;
+		
+		case 1:
+			if((time + delayTime) < HAL_GetTick())
+			{
+				state++;
+			}
+			break;
+			
+		case 2:
+			lcd7735_fillScreen(ST7735_GREEN);
+			time = HAL_GetTick();
+			state++;
+			break;
+		
+		case 3:
+			if((time + delayTime) < HAL_GetTick())
+			{
+				state++;
+			}
+			break;
+			
+		case 4:
+			lcd7735_fillScreen(ST7735_BLUE);
+			time = HAL_GetTick();
+			state++;
+			break;
+		
+		case 5:
+			if((time + delayTime) < HAL_GetTick())
+			{
+				state = 0;//state++;
+			}
+			break;
+			
+	}
+}
+
+void test_ascii_screen(void) {
+	unsigned char x;
+	int i;
+
+	lcd7735_init_screen((void *)&SmallFont[0],ST7735_GREEN,ST7735_BLACK,PORTRAIT);
+	printf("zz=%03.4f\n",34.678); 
+	while(1) {
+		x = 0x20;
+		for(i=0;i<95;i++) {
+			lcd7735_putc(x+i);
+			HAL_Delay(50);//delay_ms(50);
+		}
+		if(BUTTONS & ENTER_BUTTON) 
+			return;
+	}
+}	
+
+void test_graphics(void) {
+	unsigned char y;
+	unsigned char x;
+	uint8_t r = 0;
+	//	uint8_t m[16];
+
+	//	receive_data(0x0B,m,2);
+	//	delay_ms(2000);
+	lcd7735_fillScreen(ST7735_BLACK);
+	lcd7735_setFont((uint8_t *)&BigFont[0]);
+	while(1) {
+		lcd7735_print("Hello!",10,10,0);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_print("Hello!",10,10,30);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_drawBitmap(0,0,50,52,(bitmapdatatype)tux_50_ad,1);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_drawBitmap(0,0,50,52,(bitmapdatatype)tux_50_ad,2);
+		HAL_Delay(1000);//delay_ms(1000);
+		for (y=0;y<160;y++) {
+			for (x=0;x<128;x++) {
+				unsigned int color=0x0;
+				if (y<30) color=ST7735_BLUE;
+				else {
+					if (y<60) color=ST7735_GREEN;
+					else { 
+						if (y<90) color=ST7735_RED; 
+					}
+				}
+				lcd7735_drawPixel(x, y, color);
+				//test_dp(x,y,ccolor);
+			}
+		}
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_invertDisplay(INVERT_ON);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_invertDisplay(INVERT_OFF);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_fillScreen(ST7735_RED);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_fillScreen(ST7735_GREEN);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_fillScreen(ST7735_BLUE);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_fillScreen(ST7735_BLACK);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_drawFastLine(10,5,110,100,ST7735_WHITE);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_drawCircle(60,60,50,ST7735_CYAN);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_drawRect(10,20,90,100,ST7735_MAGENTA);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_fillCircle(70,70,50,ST7735_YELLOW);
+		HAL_Delay(1000);//delay_ms(1000);
+		lcd7735_fillRect(20,15,90,75,ST7735_BLUE);
+		HAL_Delay(1000);//delay_ms(1000);
+
+		r = (r+1) & 0x03;
+		lcd7735_setRotation(r);
+		HAL_Delay(1000);//delay_ms(1000);
+		if(BUTTONS & ENTER_BUTTON)
+			return;
 	}
 }
 

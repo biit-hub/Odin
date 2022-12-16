@@ -39,4 +39,8 @@
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_tim_ex.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_uart.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_uart_ex.h \
-  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdbool.h \
+  C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.h \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\DefaultFonts.h \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\tux_50_ad.h

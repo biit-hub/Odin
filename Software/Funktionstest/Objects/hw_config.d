@@ -1,4 +1,5 @@
-./objects/hw_config.o: ST7735-master\src\hw_config.c \
+./objects/hw_config.o: \
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\hw_config.c \
   RTE\_Target_1\Pre_Include_Global.h \
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal.h \
@@ -39,4 +40,4 @@
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_tim_ex.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_uart.h \
   C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\Drivers\STM32F3xx_HAL_Driver\Inc\stm32f3xx_hal_uart_ex.h \
-  ST7735-master\src\hw_config.h
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\hw_config.h
