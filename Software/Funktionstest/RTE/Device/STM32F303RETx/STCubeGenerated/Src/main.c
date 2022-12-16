@@ -97,6 +97,7 @@ static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 bool led_switch_test(void);
 uint8_t potentiometer_test(void);
+void rgb_test(uint8_t);
 
 /* USER CODE END PFP */
 
@@ -173,12 +174,22 @@ int main(void)
 				{
 					HAL_Delay(100);
 					while(BUTTONS & ENTER_BUTTON);
+					LEDS = 0x00;
 					state = RGB_TEST;
 				}
 				break;
 			
 			case RGB_TEST:
-				state = USB_TEST;
+				rgb_test(BUTTONS);
+				if(BUTTONS & ENTER_BUTTON)
+				{
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
+					HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_3);
+					HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_4);
+					state = USB_TEST;
+				}
 				break;
 			
 			case USB_TEST:
@@ -803,6 +814,12 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * @brief Read the Switches and mirror it to the LEDs. The function trace which Switch was set High.
+ * 
+ * @return true Every Switch was set once to High
+ * @return false Not Every Switch was set once to High
+ */
 bool led_switch_test(void)
 {
 	static uint8_t mask = 0;
@@ -828,11 +845,130 @@ bool led_switch_test(void)
 	}
 }
 
+/**
+ * @brief Read the ADC the Potentiometer position and give back the upper 8 bits of the ADC Value
+ * 
+ * @return uint8_t The upper 8 bits of the ADC Value
+ */
 uint8_t potentiometer_test(void)
 {
 	HAL_ADC_Start(&hadc3);
 	HAL_ADC_PollForConversion(&hadc3, 100);
 	return HAL_ADC_GetValue(&hadc3) >> 4;
+}
+
+/**
+ * @brief Controls the RGB LED over the parameter
+ * 
+ * @param inputParameter Controls the RGB LED mode
+ * Bit 0: Controls Red LED (10% or off)
+ * Bit 1:	Controls Green LED (10% or off)
+ * Bit 2: Controls Blue LED (10% or off)
+ * Bit 3: Set Brightness to 50%
+ * Bit 4: Plays a Rainbow-Animation. This Bit ignors Bit 1-4
+ * Bit 5: -
+ * Bit 6: -
+ * Bit 7: -
+ */
+void rgb_test(uint8_t inputParameter)
+{
+	uint16_t capture_value = 6553;	// set brightness to 10%
+	static uint16_t step_cnt = 0;
+	static uint16_t red = 65535;
+	static uint16_t green = 0;
+	static uint16_t blue = 0;
+	
+	if(inputParameter & 0x10)
+	{
+		// Animation
+		switch(step_cnt/257)
+		{
+			case 0:
+				green += 255;
+				break;
+			
+			case 1:
+				red -= 255;
+				break;
+			
+			case 2:
+				blue += 255;
+				break;
+			
+			case 3:
+				green -= 255;
+				break;
+			
+			case 4:
+				red += 255;
+				break;
+			
+			case 5:
+				blue -= 255;
+			break;
+		}
+		
+		
+		TIM2->CCR1 = red;
+		TIM2->CCR3 = green;
+		TIM2->CCR4 = blue;
+		
+		HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+		HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+		HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+		
+		HAL_Delay(5);
+		
+		if(step_cnt == 1541)
+		{
+			step_cnt = 0;
+		}
+		else
+		{
+			step_cnt++;
+		}
+	}
+	else
+	{		
+		// brightness
+		if(inputParameter & 0x08)
+		{
+			capture_value = 32767;	// set brightness to 50%
+		}
+		
+		// Red
+		if(inputParameter & 0x01)
+		{
+			TIM2->CCR1 = capture_value;
+			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+		}
+		else
+		{
+			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
+		}
+		
+		// Green
+		if(inputParameter & 0x02)
+		{
+			TIM2->CCR3 = capture_value;
+			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+		}
+		else
+		{
+			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_3);
+		}
+		
+		// Blue
+		if(inputParameter & 0x04)
+		{
+			TIM2->CCR4 = capture_value;
+			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+		}
+		else
+		{
+			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_4);
+		}
+	}	
 }
 
 /* USER CODE END 4 */
