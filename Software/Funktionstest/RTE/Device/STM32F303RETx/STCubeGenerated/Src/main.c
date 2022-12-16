@@ -35,6 +35,7 @@
 #define BUTTONS	(*((volatile uint32_t *) (0x48000800 + 0x10 + 1)))		// BASE Address PORT C + Offset for Input Register + Byte Shift (>> 8, to skip LEDs)
 #define LEDS		(*((volatile uint32_t *) (0x48000800 + 0x14)))				// BASE Address PORT C + Offset for Output Register
 #define ENTER_BUTTON	0x80
+#define START_BUTTON	0x40
 
 /* USER CODE END PD */
 
@@ -101,6 +102,7 @@ bool led_switch_test(void);
 uint8_t potentiometer_test(void);
 void rgb_test(uint8_t);
 void usb_transmit(uint8_t);
+bool eeprom_test(uint16_t, uint8_t);
 
 /* USER CODE END PFP */
 
@@ -152,6 +154,7 @@ int main(void)
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
 	unsigned char state = USB_TEST;//LED_SWITCH_TEST;
+	bool result;
 
   /* USER CODE END 2 */
 
@@ -203,12 +206,35 @@ int main(void)
 				{
 					HAL_Delay(100);
 					while(BUTTONS & ENTER_BUTTON);
+					LEDS = 0x00;
 					state = EEPROM_TEST;
 				}
 				break;
 			
 			case EEPROM_TEST:
-				state = DISPLAY_TEST;
+				if(BUTTONS & START_BUTTON)
+				{
+					LEDS = 0x00;
+					while(BUTTONS & START_BUTTON);
+					
+					result = eeprom_test(0x0000, BUTTONS & 0x3F); // hand over only Switch 1 to 6, without Enter-Switch and Start-Switch
+					if(result)
+					{
+						LEDS = 0x01;
+					}
+					else
+					{
+						LEDS = 0xFF;
+					}
+				}
+				
+				if(BUTTONS & ENTER_BUTTON)
+				{
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					LEDS = 0x00;
+					state = DISPLAY_TEST;
+				}
 				break;
 			
 			case DISPLAY_TEST:
@@ -1040,6 +1066,33 @@ void usb_transmit(uint8_t inputParameter)
 	}
 	
 	old_inputParameter = inputParameter;
+}
+
+/**
+ * @brief Test EEPROM. Write the input Parameter to the EEPROM, read the EEPROM and compare the parameter value with the read value.
+ * 
+ * @param eepromAddress EEPROM-Address for the test value
+ * @param inputParameter Test value which is written into the EEPROM
+ * @return true Test successful. Values are equal
+ * @return false Test failed. Values are different
+ */
+bool eeprom_test(uint16_t eepromAddress, uint8_t inputParameter)
+{
+	uint8_t readValue;
+	
+	HAL_I2C_Mem_Write(&hi2c1, 0xA0, eepromAddress, I2C_MEMADD_SIZE_16BIT ,&inputParameter, 1, HAL_MAX_DELAY);
+	HAL_Delay(100);
+	HAL_I2C_Mem_Read(&hi2c1, 0xA0, eepromAddress, I2C_MEMADD_SIZE_16BIT ,&readValue, 1, HAL_MAX_DELAY);
+	HAL_Delay(100);
+	
+	if(readValue == inputParameter)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 /* USER CODE END 4 */

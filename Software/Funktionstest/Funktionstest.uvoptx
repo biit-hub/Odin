@@ -152,38 +152,6 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>224</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134249690</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\stm32f3xx_it.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Funktionstest\RTE/Device/STM32F303RETx/STCubeGenerated/Src/stm32f3xx_it.c\224</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>210</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
-          <Address>134219222</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\stm32f3xx_it.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Funktionstest\RTE/Device/STM32F303RETx/STCubeGenerated/Src/stm32f3xx_it.c\210</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
           <LineNumber>3803</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
@@ -198,7 +166,7 @@
           <Expression></Expression>
         </Bp>
         <Bp>
-          <Number>3</Number>
+          <Number>1</Number>
           <Type>0</Type>
           <LineNumber>3881</LineNumber>
           <EnabledFlag>1</EnabledFlag>
@@ -210,22 +178,6 @@
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
           <Filename>C:/Users/Beat/AppData/Local/Arm/Packs/Keil/STM32F3xx_DFP/2.2.2/Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression></Expression>
-        </Bp>
-        <Bp>
-          <Number>4</Number>
-          <Type>0</Type>
-          <LineNumber>749</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>0</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>0</BreakIfRCount>
-          <Filename>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\main.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -255,6 +207,16 @@
           <count>4</count>
           <WinNumber>1</WinNumber>
           <ItemText>huart3</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>readValue</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>inputParameter</ItemText>
         </Ww>
       </WatchWindow1>
       <MemoryWindow1>
