@@ -96,7 +96,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_NVIC_Init(void);
 /* USER CODE BEGIN PFP */
 bool led_switch_test(void);
-
+uint8_t potentiometer_test(void);
 
 /* USER CODE END PFP */
 
@@ -168,7 +168,13 @@ int main(void)
 				break;
 			
 			case POTENTIOMETER_TEST:
-				state = RGB_TEST;
+				LEDS = potentiometer_test();
+				if(BUTTONS & ENTER_BUTTON)
+				{
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					state = RGB_TEST;
+				}
 				break;
 			
 			case RGB_TEST:
@@ -820,6 +826,13 @@ bool led_switch_test(void)
 	{
 		return false;
 	}
+}
+
+uint8_t potentiometer_test(void)
+{
+	HAL_ADC_Start(&hadc3);
+	HAL_ADC_PollForConversion(&hadc3, 100);
+	return HAL_ADC_GetValue(&hadc3) >> 4;
 }
 
 /* USER CODE END 4 */

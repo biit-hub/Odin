@@ -154,7 +154,7 @@
           <Type>0</Type>
           <LineNumber>100</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134239652</Address>
+          <Address>134241300</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -164,38 +164,6 @@
           <Filename>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\stm32f3xx_it.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression>\\Funktionstest\RTE/Device/STM32F303RETx/STCubeGenerated/Src/stm32f3xx_it.c\100</Expression>
-        </Bp>
-        <Bp>
-          <Number>1</Number>
-          <Type>0</Type>
-          <LineNumber>171</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134246172</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Funktionstest\RTE/Device/STM32F303RETx/STCubeGenerated/Src/main.c\171</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
-          <LineNumber>164</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134246152</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\main.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Funktionstest\RTE/Device/STM32F303RETx/STCubeGenerated/Src/main.c\164</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -290,7 +258,7 @@
 
   <Group>
     <GroupName>:STM32CubeMX:Common Sources</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
