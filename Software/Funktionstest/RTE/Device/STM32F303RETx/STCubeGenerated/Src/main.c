@@ -58,6 +58,7 @@ TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart3_rx;
 
 /* USER CODE BEGIN PV */
 
@@ -76,7 +77,7 @@ enum state_e {
 };
 
 	
-uint8_t uart_received[2];
+uint8_t uart_received;
 uint8_t buffer;
 
 /* USER CODE END PV */
@@ -84,6 +85,7 @@ uint8_t buffer;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_DAC1_Init(void);
@@ -98,6 +100,7 @@ static void MX_NVIC_Init(void);
 bool led_switch_test(void);
 uint8_t potentiometer_test(void);
 void rgb_test(uint8_t);
+void usb_transmit(uint8_t);
 
 /* USER CODE END PFP */
 
@@ -134,6 +137,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC3_Init();
   MX_DAC1_Init();
@@ -147,7 +151,7 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-	unsigned char state = LED_SWITCH_TEST;
+	unsigned char state = USB_TEST;//LED_SWITCH_TEST;
 
   /* USER CODE END 2 */
 
@@ -193,7 +197,14 @@ int main(void)
 				break;
 			
 			case USB_TEST:
-				state = EEPROM_TEST;
+				usb_transmit(BUTTONS);
+				LEDS = uart_received;
+				if(BUTTONS & ENTER_BUTTON)
+				{
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					state = EEPROM_TEST;
+				}
 				break;
 			
 			case EEPROM_TEST:
@@ -735,8 +746,24 @@ static void MX_USART3_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART3_Init 2 */
-	UART_Start_Receive_IT(&huart3, uart_received, 1);
+	UART_Start_Receive_DMA(&huart3, &uart_received, 1);
   /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
 
@@ -969,6 +996,50 @@ void rgb_test(uint8_t inputParameter)
 			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_4);
 		}
 	}	
+}
+
+/**
+ * @brief Send Strings over the UART to the USB-Port
+ * 
+ * @param inputParameter Controls the UART Output. Is positiv edge triggerd.
+ * Bit 0: Sends "Hello "
+ * Bit 1:	Sends "World "
+ * Bit 2: Sends "I'm Odin. "
+ * Bit 3: Sends "Nice to meet you! "
+ * Bit 4: Sends "\r\n"
+ * Bit 5: -
+ * Bit 6: -
+ * Bit 7: - 
+ */
+void usb_transmit(uint8_t inputParameter)
+{
+	static uint8_t old_inputParameter = 0;
+	uint8_t changes = (inputParameter ^ old_inputParameter) & inputParameter; 	// positiv edge detection
+
+	switch(changes)
+	{
+		case 0x01:
+			HAL_UART_Transmit(&huart3, "Hello ", 6, 100);
+			break;
+		
+		case 0x02:
+			HAL_UART_Transmit(&huart3, "World ", 6, 100);
+			break;
+		
+		case 0x04:
+			HAL_UART_Transmit(&huart3, "I'm Odin. ", 10, 100);
+			break;
+		
+		case 0x08:
+			HAL_UART_Transmit(&huart3, "Nice to meet you! ", 18, 100);
+			break;
+		
+		case 0x10:
+			HAL_UART_Transmit(&huart3, "\r\n", 2, 100);
+			break;
+	}
+	
+	old_inputParameter = inputParameter;
 }
 
 /* USER CODE END 4 */
