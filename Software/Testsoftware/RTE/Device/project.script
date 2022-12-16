@@ -1,0 +1,6 @@
+load STM32F303RETx 
+project name STCubeGenerated 
+project toolchain "MDK-ARM V5" 
+project path "C:\Users\Beat\Projekte\Odin\Software\Testsoftware\RTE\Device\STM32F303RETx\" 
+set tpl_path "C:\Users\Beat\AppData\Local\Arm\Packs\Keil\STM32F3xx_DFP\2.2.2\MDK\CubeMX" 
+set dest_path "STM32F303RETx" 
