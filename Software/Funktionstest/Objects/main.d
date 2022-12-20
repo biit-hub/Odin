@@ -43,4 +43,4 @@
   C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\stdio.h \
   RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.h \
   RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\DefaultFonts.h \
-  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\tux_50_ad.h
+  RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\bitmaps.h

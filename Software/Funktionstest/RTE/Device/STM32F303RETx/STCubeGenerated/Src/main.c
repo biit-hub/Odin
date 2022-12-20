@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include "ST7735/ST7735.h"
 #include "ST7735/DefaultFonts.h"
-#include "ST7735/tux_50_ad.h"
+#include "ST7735/bitmaps.h"
 
 /* USER CODE END Includes */
 
@@ -39,7 +39,9 @@
 #define BUTTONS	(*((volatile uint32_t *) (0x48000800 + 0x10 + 1)))		// BASE Address PORT C + Offset for Input Register + Byte Shift (>> 8, to skip LEDs)
 #define LEDS		(*((volatile uint32_t *) (0x48000800 + 0x14)))				// BASE Address PORT C + Offset for Output Register
 #define ENTER_BUTTON	0x80
-#define START_BUTTON	0x40
+#define SKIP_BUTTON		0x40
+#define FAIL_BUTTON		0x20
+#define PREPERATION		255
 
 /* USER CODE END PD */
 
@@ -68,7 +70,7 @@ DMA_HandleTypeDef hdma_usart3_rx;
 /* USER CODE BEGIN PV */
 
 enum state_e {
-	LED_SWITCH_TEST, 
+	LED_SWITCH_TEST = 0, 
 	POTENTIOMETER_TEST, 
 	RGB_TEST,
 	USB_TEST, 
@@ -81,7 +83,23 @@ enum state_e {
 	END_TEST
 };
 
-	
+enum testStates_e {
+	NONE,
+	DONE,
+	SKIPPED,
+	FAILED
+};
+
+uint8_t testText[END_TEST][14] = {
+	"LED+Schalter",
+	"Potentiometer",
+	"RGB LED",
+	"USB",
+	"EEPROM",
+	"Display"
+};
+
+uint8_t testStates[END_TEST];
 uint8_t uart_received;
 uint8_t buffer;
 
@@ -109,8 +127,7 @@ void usb_transmit(uint8_t);
 bool eeprom_test(uint16_t, uint8_t);
 void display_init(void);
 void display_test(void);
-void test_graphics(void);
-void test_ascii_screen(void);
+void test_init(bool);
 
 /* USER CODE END PFP */
 
@@ -161,10 +178,19 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-	unsigned char state = LED_SWITCH_TEST;
+	uint8_t state = PREPERATION;
 	bool result;
+	uint8_t readInput;
+	
+	for(uint8_t i=0; i<END_TEST; i++)
+	{
+		testStates[i] = NONE;
+	}
 	
 	display_init();
+	HAL_Delay(1000);
+	
+	test_init(true);
 
   /* USER CODE END 2 */
 
@@ -178,85 +204,172 @@ int main(void)
 		
 		switch(state)
 		{
+			case PREPERATION:
+				lcd7735_print("Press all", 0, 125,0);
+				lcd7735_print("Switches", 0, 135,0);
+				state = LED_SWITCH_TEST;
+				break;
+			
 			case LED_SWITCH_TEST:
 				if(led_switch_test())
 				{	
-					state = POTENTIOMETER_TEST;		// test finished
+					// complete the Test
+					testStates[LED_SWITCH_TEST] = DONE;
+					test_init(false);
+					
+					// preperation for next Test
+					state = POTENTIOMETER_TEST;
+					lcd7735_print("S8 = Done", 0, 125,0);
+					lcd7735_print("S7 = Skip", 0, 135,0);
+					lcd7735_print("S6 = Failed", 0, 145,0);
 				}
 				break;
 			
 			case POTENTIOMETER_TEST:
 				LEDS = potentiometer_test();
-				if(BUTTONS & ENTER_BUTTON)
+				readInput = BUTTONS;
+				if(readInput & (ENTER_BUTTON | SKIP_BUTTON | FAIL_BUTTON))
 				{
+					// complete the Test
+					if(readInput & ENTER_BUTTON)
+					{
+						testStates[POTENTIOMETER_TEST] = DONE;
+					}
+					else if(readInput & SKIP_BUTTON)
+					{
+						testStates[POTENTIOMETER_TEST] = SKIPPED;
+					}
+					else if(readInput & FAIL_BUTTON)
+					{
+						testStates[POTENTIOMETER_TEST] = FAILED;
+					}
+					test_init(false);
 					HAL_Delay(100);
 					while(BUTTONS & ENTER_BUTTON);
+					
+					// preperation for next Test
 					LEDS = 0x00;
+					lcd7735_print("S8 = Done", 0, 125,0);
+					lcd7735_print("S7 = Skip", 0, 135,0);
+					lcd7735_print("S6 = Failed", 0, 145,0);
 					state = RGB_TEST;
 				}
 				break;
 			
 			case RGB_TEST:
-				rgb_test(BUTTONS);
-				if(BUTTONS & ENTER_BUTTON)
+				readInput = BUTTONS;
+				rgb_test(readInput& 0x1F);
+				if(readInput & (ENTER_BUTTON | SKIP_BUTTON | FAIL_BUTTON))
 				{
+					// complete the Test
+					if(readInput & ENTER_BUTTON)
+					{
+						testStates[RGB_TEST] = DONE;
+					}
+					else if(readInput & SKIP_BUTTON)
+					{
+						testStates[RGB_TEST] = SKIPPED;
+					}
+					else if(readInput & FAIL_BUTTON)
+					{
+						testStates[RGB_TEST] = FAILED;
+					}
+					test_init(false);
 					HAL_Delay(100);
 					while(BUTTONS & ENTER_BUTTON);
 					HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1);
 					HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_3);
 					HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_4);
+					
+					// preperation for next Test
+					lcd7735_print("S8 = Done", 0, 125,0);
+					lcd7735_print("S7 = Skip", 0, 135,0);
+					lcd7735_print("S6 = Failed", 0, 145,0);
 					state = USB_TEST;
 				}
 				break;
 			
 			case USB_TEST:
-				usb_transmit(BUTTONS);
+				readInput = BUTTONS;
+				usb_transmit(readInput & 0x1F);
 				LEDS = uart_received;
-				if(BUTTONS & ENTER_BUTTON)
+				if(readInput & (ENTER_BUTTON | SKIP_BUTTON | FAIL_BUTTON))
 				{
+					// complete the Test
+					if(readInput & ENTER_BUTTON)
+					{
+						testStates[USB_TEST] = DONE;
+					}
+					else if(readInput & SKIP_BUTTON)
+					{
+						testStates[USB_TEST] = SKIPPED;
+					}
+					else if(readInput & FAIL_BUTTON)
+					{
+						testStates[USB_TEST] = FAILED;
+					}
+					test_init(false);
 					HAL_Delay(100);
 					while(BUTTONS & ENTER_BUTTON);
 					LEDS = 0x00;
+					
+					// preperation for next Test
+					lcd7735_print("S8: Start Test", 0, 125,0);
+					lcd7735_print("Automatic Test", 0, 135,0);
+					lcd7735_print("              ", 0, 145,0);
 					state = EEPROM_TEST;
 				}
 				break;
 			
 			case EEPROM_TEST:
-				if(BUTTONS & START_BUTTON)
+				if(BUTTONS & ENTER_BUTTON)
 				{
 					LEDS = 0x00;
-					while(BUTTONS & START_BUTTON);
+					while(BUTTONS & ENTER_BUTTON);
 					
-					result = eeprom_test(0x0000, BUTTONS & 0x3F); // hand over only Switch 1 to 6, without Enter-Switch and Start-Switch
+					result = eeprom_test(0x0000, 0xAA); // hand over only Switch 1 to 6, without Enter-Switch and Start-Switch
 					if(result)
 					{
-						LEDS = 0x01;
+						testStates[EEPROM_TEST] = DONE;
+						test_init(false);
 					}
 					else
 					{
-						LEDS = 0xFF;
+						testStates[EEPROM_TEST] = FAILED;
+						test_init(false);
 					}
-				}
-				
-				if(BUTTONS & ENTER_BUTTON)
-				{
-					HAL_Delay(100);
-					while(BUTTONS & ENTER_BUTTON);
-					LEDS = 0x00;
 					state = DISPLAY_TEST;
+					HAL_Delay(500);
 				}
 				break;
 			
 			case DISPLAY_TEST:
 				display_test();
-				//test_graphics();
-				//test_ascii_screen();
 				
-				if(BUTTONS & ENTER_BUTTON)
+				readInput = BUTTONS;
+				if(readInput & (ENTER_BUTTON | SKIP_BUTTON | FAIL_BUTTON))
 				{
+					// complete the Test
+					if(readInput & ENTER_BUTTON)
+					{
+						testStates[DISPLAY_TEST] = DONE;
+					}
+					else if(readInput & SKIP_BUTTON)
+					{
+						testStates[DISPLAY_TEST] = SKIPPED;
+					}
+					else if(readInput & FAIL_BUTTON)
+					{
+						testStates[DISPLAY_TEST] = FAILED;
+					}
+					test_init(true);
 					HAL_Delay(100);
 					while(BUTTONS & ENTER_BUTTON);
-					lcd7735_fillScreen(ST7735_BLACK);
+					
+					// preperation for next Test
+					lcd7735_print("S8 = Done", 0, 125,0);
+					lcd7735_print("S7 = Skip", 0, 135,0);
+					lcd7735_print("S6 = Failed", 0, 145,0);
 					state = MATRIX_TEST;
 				}				
 				break;
@@ -278,6 +391,10 @@ int main(void)
 				break;
 			
 			case END_TEST:
+				lcd7735_print("Test completed!", 0, 125,0);
+				lcd7735_print("               ", 0, 135,0);
+				lcd7735_print("               ", 0, 145,0);
+				while(1);
 				state = LED_SWITCH_TEST;
 				break;
 		}
@@ -1115,17 +1232,23 @@ bool eeprom_test(uint16_t eepromAddress, uint8_t inputParameter)
 	}
 }
 
+/**
+ * @brief Initialize the display and shows the Logo
+ * 
+ */
 void display_init(void)
 {
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-	TIM3->CCR1 = 30000;//65535;
-	HAL_Delay(50);
-	TIM3->CCR1 = 65535;
 	lcd7735_initR(INITR_REDTAB);
 	lcd7735_setFont((uint8_t *)&SmallFont[0]);
-	lcd7735_fillScreen(ST7735_BLACK);
+	lcd7735_drawBitmap(0,0,128,160,(bitmapdatatype)Odin_160x128,1);
+	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	TIM3->CCR1 = 65535;
 }
 
+/**
+ * @brief Test Display. Colors the display in Red, Green and Blue and shows informations
+ * 
+ */
 void display_test(void)
 {
 	const uint32_t delayTime = 1000;
@@ -1136,6 +1259,9 @@ void display_test(void)
 	{
 		case 0:
 			lcd7735_fillScreen(ST7735_RED);
+			lcd7735_print("S8 = Done", 0, 125,0);
+			lcd7735_print("S7 = Skip", 0, 135,0);
+			lcd7735_print("S6 = Failed", 0, 145,0);
 			time = HAL_GetTick();
 			state++;
 			break;
@@ -1149,6 +1275,9 @@ void display_test(void)
 			
 		case 2:
 			lcd7735_fillScreen(ST7735_GREEN);
+			lcd7735_print("S8 = Done", 0, 125,0);
+			lcd7735_print("S7 = Skip", 0, 135,0);
+			lcd7735_print("S6 = Failed", 0, 145,0);
 			time = HAL_GetTick();
 			state++;
 			break;
@@ -1162,6 +1291,9 @@ void display_test(void)
 			
 		case 4:
 			lcd7735_fillScreen(ST7735_BLUE);
+			lcd7735_print("S8 = Done", 0, 125,0);
+			lcd7735_print("S7 = Skip", 0, 135,0);
+			lcd7735_print("S6 = Failed", 0, 145,0);
 			time = HAL_GetTick();
 			state++;
 			break;
@@ -1169,93 +1301,51 @@ void display_test(void)
 		case 5:
 			if((time + delayTime) < HAL_GetTick())
 			{
-				state = 0;//state++;
+				state = 0;
 			}
-			break;
-			
+			break;			
 	}
 }
 
-void test_ascii_screen(void) {
-	unsigned char x;
-	int i;
-
-	lcd7735_init_screen((void *)&SmallFont[0],ST7735_GREEN,ST7735_BLACK,PORTRAIT);
-	printf("zz=%03.4f\n",34.678); 
-	while(1) {
-		x = 0x20;
-		for(i=0;i<95;i++) {
-			lcd7735_putc(x+i);
-			HAL_Delay(50);//delay_ms(50);
-		}
-		if(BUTTONS & ENTER_BUTTON) 
-			return;
-	}
-}	
-
-void test_graphics(void) {
-	unsigned char y;
-	unsigned char x;
-	uint8_t r = 0;
-	//	uint8_t m[16];
-
-	//	receive_data(0x0B,m,2);
-	//	delay_ms(2000);
-	lcd7735_fillScreen(ST7735_BLACK);
-	lcd7735_setFont((uint8_t *)&BigFont[0]);
-	while(1) {
-		lcd7735_print("Hello!",10,10,0);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_print("Hello!",10,10,30);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_drawBitmap(0,0,50,52,(bitmapdatatype)tux_50_ad,1);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_drawBitmap(0,0,50,52,(bitmapdatatype)tux_50_ad,2);
-		HAL_Delay(1000);//delay_ms(1000);
-		for (y=0;y<160;y++) {
-			for (x=0;x<128;x++) {
-				unsigned int color=0x0;
-				if (y<30) color=ST7735_BLUE;
-				else {
-					if (y<60) color=ST7735_GREEN;
-					else { 
-						if (y<90) color=ST7735_RED; 
-					}
-				}
-				lcd7735_drawPixel(x, y, color);
-				//test_dp(x,y,ccolor);
-			}
-		}
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_invertDisplay(INVERT_ON);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_invertDisplay(INVERT_OFF);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_fillScreen(ST7735_RED);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_fillScreen(ST7735_GREEN);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_fillScreen(ST7735_BLUE);
-		HAL_Delay(1000);//delay_ms(1000);
+/**
+ * @brief Initialize the test screen with the test results
+ * 
+* @param fillScreen if true, than the Background will b redrawn
+ */
+void test_init(bool fillScreen)
+{
+	uint8_t start_y = 5;
+	const uint8_t line_hight = 12;
+	const uint8_t text_start_x = 12;
+	const uint8_t icon_start_x = 0;
+	uint8_t line_y = start_y;
+	
+	if(fillScreen)
+	{
 		lcd7735_fillScreen(ST7735_BLACK);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_drawFastLine(10,5,110,100,ST7735_WHITE);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_drawCircle(60,60,50,ST7735_CYAN);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_drawRect(10,20,90,100,ST7735_MAGENTA);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_fillCircle(70,70,50,ST7735_YELLOW);
-		HAL_Delay(1000);//delay_ms(1000);
-		lcd7735_fillRect(20,15,90,75,ST7735_BLUE);
-		HAL_Delay(1000);//delay_ms(1000);
-
-		r = (r+1) & 0x03;
-		lcd7735_setRotation(r);
-		HAL_Delay(1000);//delay_ms(1000);
-		if(BUTTONS & ENTER_BUTTON)
-			return;
 	}
+	
+	for(int i=0; i < END_TEST; i++)
+	{
+		switch(testStates[i])
+		{
+			case NONE:
+				break;
+			case DONE:
+				lcd7735_drawBitmap(icon_start_x,line_y,10,10,(bitmapdatatype)complete_10x10,1);
+				break;
+			case SKIPPED:
+				lcd7735_drawBitmap(icon_start_x,line_y,10,10,(bitmapdatatype)skip_10x10,1);
+				break;
+			case FAILED:
+				lcd7735_drawBitmap(icon_start_x,line_y,10,10,(bitmapdatatype)cancel_10x10,1);
+			break;
+		}
+
+		lcd7735_print(testText[i],text_start_x,line_y,0);
+		
+		line_y += line_hight;
+	}	
 }
 
 /* USER CODE END 4 */

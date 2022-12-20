@@ -447,9 +447,9 @@
               <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\ST7735.h</FilePath>
             </File>
             <File>
-              <FileName>tux_50_ad.h</FileName>
+              <FileName>bitmaps.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\tux_50_ad.h</FilePath>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\ST7735\bitmaps.h</FilePath>
             </File>
           </Files>
         </Group>

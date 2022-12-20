@@ -185,7 +185,7 @@ typedef struct _font {
 
 static Font cfont;
 static uint8_t _transparent = 0;
-static uint16_t _fg = ST7735_GREEN;
+static uint16_t _fg = ST7735_WHITE;
 static uint16_t _bg = ST7735_BLACK;
 
 // Companion code to the above tables.  Reads and issues
