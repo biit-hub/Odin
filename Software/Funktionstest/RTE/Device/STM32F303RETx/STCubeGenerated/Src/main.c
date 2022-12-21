@@ -128,6 +128,7 @@ bool eeprom_test(uint16_t, uint8_t);
 void display_init(void);
 void display_test(void);
 void test_init(bool);
+void runningLight(void);
 
 /* USER CODE END PFP */
 
@@ -188,6 +189,14 @@ int main(void)
 	}
 	
 	display_init();
+	if(BUTTONS)
+	{
+		while(1)
+		{
+			runningLight();
+			rgb_test(0x10);
+		}
+	}
 	HAL_Delay(1000);
 	
 	test_init(true);
@@ -1346,6 +1355,57 @@ void test_init(bool fillScreen)
 		
 		line_y += line_hight;
 	}	
+}
+
+void runningLight(void)
+{
+	const uint32_t delayTime = 100;
+	static uint8_t state = 0;
+	static uint32_t time;
+	static uint8_t step = 0x01;
+	static uint8_t direction = 0;
+	
+	switch(state)
+	{
+		case 0:
+			LEDS = step;
+			if(direction == 0)
+			{
+				if(step < 0x80)
+				{
+					step = step << 1;
+				}
+				else
+				{
+					//step = 0x01;
+					step = step >> 1;
+					direction = 1;
+				}
+			}
+			else
+			{
+				if(step > 0x01)
+				{
+					step = step >> 1;
+				}
+				else
+				{
+					//step = 0x01;
+					step = step << 1;
+					direction = 0;
+				}
+			}
+			time = HAL_GetTick();
+			state++;
+			break;
+		
+		case 1:
+			if((time + delayTime) < HAL_GetTick())
+			{
+				state = 0;
+			}
+			break;
+	}
 }
 
 /* USER CODE END 4 */
