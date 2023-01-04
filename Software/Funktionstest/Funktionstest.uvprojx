@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>.\ST7735-master;.\ST7735-master\src</IncludePath>
+              <IncludePath>.\ST7735-master;.\ST7735-master\src;.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\matrixModule</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -403,6 +403,18 @@
         </Group>
         <Group>
           <GroupName>Matrix Module</GroupName>
+          <Files>
+            <File>
+              <FileName>matrixModule.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\matrixModule\matrixModule.c</FilePath>
+            </File>
+            <File>
+              <FileName>matrixModule.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\RTE\Device\STM32F303RETx\STCubeGenerated\Src\matrixModule\matrixModule.h</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Segment Module</GroupName>

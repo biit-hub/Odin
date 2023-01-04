@@ -1,6 +1,7 @@
 --cpu=Cortex-M4.fp.sp
 ".\objects\main.o"
 ".\objects\stm32f3xx_it.o"
+".\objects\matrixmodule.o"
 ".\objects\defaultfonts.o"
 ".\objects\hw_config.o"
 ".\objects\st7735.o"

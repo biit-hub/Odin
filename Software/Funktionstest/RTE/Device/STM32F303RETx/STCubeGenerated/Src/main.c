@@ -26,6 +26,8 @@
 #include "ST7735/ST7735.h"
 #include "ST7735/DefaultFonts.h"
 #include "ST7735/bitmaps.h"
+#include "matrixModule/matrixModule.h"
+
 
 /* USER CODE END Includes */
 
@@ -42,6 +44,8 @@
 #define SKIP_BUTTON		0x40
 #define FAIL_BUTTON		0x20
 #define PREPERATION		255
+
+//#define PORT3		(*((volatile uint32_t *) (0x48000000 + 0x14)))		// BASE Address PORT C + Offset for Output Register + Byte Shift (>> 8, to skip LEDs)
 
 /* USER CODE END PD */
 
@@ -96,12 +100,15 @@ uint8_t testText[END_TEST][14] = {
 	"RGB LED",
 	"USB",
 	"EEPROM",
-	"Display"
+	"Display",
+	"Matrix",
+	"7-Segment"
 };
 
 uint8_t testStates[END_TEST];
 uint8_t uart_received;
 uint8_t buffer;
+
 
 /* USER CODE END PV */
 
@@ -129,6 +136,8 @@ void display_init(void);
 void display_test(void);
 void test_init(bool);
 void runningLight(void);
+void matrix_test(void);
+void segment_test(void);
 
 /* USER CODE END PFP */
 
@@ -142,7 +151,7 @@ void runningLight(void);
   * @retval int
   */
 int main(void)
-{
+ {
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -182,6 +191,8 @@ int main(void)
 	uint8_t state = PREPERATION;
 	bool result;
 	uint8_t readInput;
+	uint8_t answer = 0;
+	
 	
 	for(uint8_t i=0; i<END_TEST; i++)
 	{
@@ -189,8 +200,11 @@ int main(void)
 	}
 	
 	display_init();
-	if(BUTTONS)
+	
+	readInput = BUTTONS;
+	if((uint8_t)readInput)
 	{
+		P3 = 0xFF << 5;
 		while(1)
 		{
 			runningLight();
@@ -376,19 +390,115 @@ int main(void)
 					while(BUTTONS & ENTER_BUTTON);
 					
 					// preperation for next Test
-					lcd7735_print("S8 = Done", 0, 125,0);
-					lcd7735_print("S7 = Skip", 0, 135,0);
-					lcd7735_print("S6 = Failed", 0, 145,0);
+					lcd7735_print("Matrix Test    ", 0, 125,0);
+					lcd7735_print("S8 = Start Test", 0, 135,0);
+					lcd7735_print("S7 = Skip Test", 0, 145,0);
+					configHardware(PORT1, PORT3, 8);
+					do{
+						answer = BUTTONS;
+					} while(!(answer & (ENTER_BUTTON | SKIP_BUTTON)));
+					while((uint8_t)BUTTONS);
+					if(answer & ENTER_BUTTON)
+					{
+						lcd7735_print("S8 = Done        ", 0, 125,0);
+						lcd7735_print("S7 = Skip        ", 0, 135,0);
+						lcd7735_print("S6 = Failed      ", 0, 145,0);
+					}
 					state = MATRIX_TEST;
 				}				
 				break;
 			
 			case MATRIX_TEST:
-				state = SEGMENT_TEST;
+				if(answer & ENTER_BUTTON)
+				{
+					matrix_test();
+				}
+			
+				readInput = BUTTONS;
+				if((readInput & (ENTER_BUTTON | SKIP_BUTTON | FAIL_BUTTON)) || (answer & SKIP_BUTTON))
+				{
+					// complete the Test
+					if(readInput & ENTER_BUTTON)
+					{
+						testStates[MATRIX_TEST] = DONE;
+					}
+					else if(readInput & SKIP_BUTTON)
+					{
+						testStates[MATRIX_TEST] = SKIPPED;
+					}
+					else if(readInput & FAIL_BUTTON)
+					{
+						testStates[MATRIX_TEST] = FAILED;
+					}
+					else if(answer & SKIP_BUTTON)
+					{
+						testStates[MATRIX_TEST] = SKIPPED;
+					}
+					P1 = 0;
+					P3 = 0;
+					test_init(false);
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					
+					// preperation for next Test
+					lcd7735_print("7-Segment Test ", 0, 125,0);
+					lcd7735_print("S8 = Start Test", 0, 135,0);
+					lcd7735_print("S7 = Skip Test", 0, 145,0);
+					configHardware(PORT1, PORT3, 8);
+					do{
+						answer = BUTTONS;
+					} while(!(answer & (ENTER_BUTTON | SKIP_BUTTON)));
+					while((uint8_t)BUTTONS);
+					if(answer & ENTER_BUTTON)
+					{
+						lcd7735_print("S8 = Done        ", 0, 125,0);
+						lcd7735_print("S7 = Skip        ", 0, 135,0);
+						lcd7735_print("S6 = Failed      ", 0, 145,0);
+					}
+					configHardware(PORT1, PORT3, 4);
+					state = SEGMENT_TEST;
+				}				
 				break;
 			
 			case SEGMENT_TEST:
-				state = SHIFT_REGISTER_TEST;
+				if(answer & ENTER_BUTTON)
+				{
+					segment_test();
+				}
+			
+				readInput = BUTTONS;
+				if((readInput & (ENTER_BUTTON | SKIP_BUTTON | FAIL_BUTTON)) || (answer & SKIP_BUTTON))
+				{
+					// complete the Test
+					if(readInput & ENTER_BUTTON)
+					{
+						testStates[SEGMENT_TEST] = DONE;
+					}
+					else if(readInput & SKIP_BUTTON)
+					{
+						testStates[SEGMENT_TEST] = SKIPPED;
+					}
+					else if(readInput & FAIL_BUTTON)
+					{
+						testStates[SEGMENT_TEST] = FAILED;
+					}
+					else if(answer & SKIP_BUTTON)
+					{
+						testStates[SEGMENT_TEST] = SKIPPED;
+					}
+					P1 = 0;
+					P3 = 0;
+					test_init(false);
+					HAL_Delay(100);
+					while(BUTTONS & ENTER_BUTTON);
+					
+					// preperation for next Test
+					lcd7735_print("S8 = Done", 0, 125,0);
+					lcd7735_print("S7 = Skip", 0, 135,0);
+					lcd7735_print("S6 = Failed", 0, 145,0);
+
+					state = SHIFT_REGISTER_TEST;
+				}				
 				break;
 			
 			case SHIFT_REGISTER_TEST:
@@ -1357,6 +1467,10 @@ void test_init(bool fillScreen)
 	}	
 }
 
+/**
+ * @brief Non-Blocking running light animation
+ * 
+ */
 void runningLight(void)
 {
 	const uint32_t delayTime = 100;
@@ -1377,7 +1491,6 @@ void runningLight(void)
 				}
 				else
 				{
-					//step = 0x01;
 					step = step >> 1;
 					direction = 1;
 				}
@@ -1390,7 +1503,6 @@ void runningLight(void)
 				}
 				else
 				{
-					//step = 0x01;
 					step = step << 1;
 					direction = 0;
 				}
@@ -1406,6 +1518,111 @@ void runningLight(void)
 			}
 			break;
 	}
+}
+
+/**
+ * @brief Matrix Test. Shows "ODIN" as scrolling text. Non-blocking
+ * 
+ */
+void matrix_test(void)
+{
+	uint8_t text[30] = {
+		0x7E,
+		0x81,
+		0x81,
+		0x7E,
+		0x00,
+		0x00,
+		0xFF,
+		0x81,
+		0x81,
+		0x7E,
+		0x00,
+		0x00,
+		0x81,
+		0xFF,
+		0x81,
+		0x00,
+		0x00,
+		0xFF,
+		0x02,
+		0x0C,
+		0x30,
+		0x40,
+		0xFF,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x00
+	};
+	uint8_t pattern[8];
+	const uint32_t delayTime = 100;
+	static uint8_t state = 0;
+	static uint32_t time = 0;
+	
+	if((time + delayTime) < HAL_GetTick())
+	{
+		if(state < 27)
+		{
+			state++;
+		}
+		else
+		{
+			state = 0;
+		}
+		
+		for(int i=0; i<8; i++)
+		{
+			pattern[i] = ~text[(state + i) % 28];
+		}
+		setPattern(pattern);
+		
+		time = HAL_GetTick();
+	}
+	
+	showPattern();
+}
+
+
+/**
+ * @brief Segment Test. Shows all Hex Symbols as scrolling text. Non-blocking
+ * 
+ */
+void segment_test(void)
+{
+	uint8_t pattern[4] = { symbols[0], symbols[1], symbols[2], symbols[3] }; 
+	const uint32_t delayTime = 500;
+	static uint8_t state = 0;
+	static uint32_t time = 0;
+	static bool enableDot = false;
+	
+	if((time + delayTime) < HAL_GetTick())
+	{
+		if(state < 15)
+		{
+			state++;
+		}
+		else
+		{
+			state = 0;
+			enableDot ^= 0x01;
+		}
+		
+		for(int i=0; i<4; i++)
+		{
+			pattern[i] = symbols[(state + i) % 16];
+			if(enableDot)
+			{
+				pattern[i] &= symbols[DOT];
+			}
+		}
+		setPattern(pattern);
+		
+		time = HAL_GetTick();
+	}
+	
+	showPattern();	
 }
 
 /* USER CODE END 4 */
